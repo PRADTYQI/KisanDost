@@ -89,14 +89,15 @@ class DiagnosisEngine(private val context: Context) {
             val byteBuffer = convertBitmapToByteBuffer(resizedBitmap)
             
             // Get output shape from interpreter (defaults to DEFAULT_OUTPUT_CLASSES if unavailable)
-            val outputShape = interpreter.outputTensor(0).shape()
+            val outputShape = interpreter.getOutputTensor(0).shape()
+
             val numClasses = if (outputShape.isNotEmpty()) outputShape[1] else DEFAULT_OUTPUT_CLASSES
             
             // Run inference
-            val outputBuffer = ByteBuffer.allocateDirect(4 * numClasses)
-            outputBuffer.order(ByteOrder.nativeOrder())
-            
-            interpreter.run(byteBuffer, outputBuffer)
+            val outputBuffer = Array(1) { FloatArray(NUM_CLASSES) }
+interpreter.run(inputBuffer, outputBuffer)
+
+           
             
             // Process output
             outputBuffer.rewind()

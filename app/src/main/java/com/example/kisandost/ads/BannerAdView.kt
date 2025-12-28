@@ -27,8 +27,10 @@ fun BannerAdView(
     val adUnitId = stringResource(R.string.admob_banner_test_id)
     
     // Get adaptive ad size based on screen width
-    val adSize = remember {
-        getAdaptiveAdSize(context)
+    val adSize = AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
+    context,
+    adWidth
+)
     }
     
     Box(
