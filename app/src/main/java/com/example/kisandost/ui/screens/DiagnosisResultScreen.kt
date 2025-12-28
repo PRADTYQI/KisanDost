@@ -104,7 +104,7 @@ fun DiagnosisResultScreen(
 @Composable
 fun RemedySection(title: String, remedies: List<String>, cardColor: Color, titleColor: Color) {
     if (remedies.isEmpty()) return
-    Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = cardColor)) {
+    Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp), colors = CardDefaults.cardColors(containerColor = cardColor)) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = titleColor)
             remedies.forEachIndexed { i, remedy ->

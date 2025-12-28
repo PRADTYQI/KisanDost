@@ -64,13 +64,13 @@ fun HomeScreen(
     
     LaunchedEffect(Unit) {
         diagnosisEngine = DiagnosisEngine(context)
-        // FIX: Using crop.modelPath to pass the string filename
-        diagnosisEngine?.loadModel(selectedCrop.modelPath)
+        // FIX: Ensure the engine loads the initial selected crop
+        diagnosisEngine?.switchCropModel(selectedCrop)
     }
     
     LaunchedEffect(selectedCrop) {
-        // FIX: Update model when user selects a different crop
-        diagnosisEngine?.loadModel(selectedCrop.modelPath)
+        // FIX: Update engine model when the user changes crop selection
+        diagnosisEngine?.switchCropModel(selectedCrop)
     }
     
     DisposableEffect(Unit) {
@@ -160,14 +160,13 @@ fun RealTimeCameraPreview(
         if (isCapturing) {
             analyzer.setAnalyzer(ContextCompat.getMainExecutor(context)) { imageProxy ->
                 val currentTime = System.currentTimeMillis()
-                if (currentTime - lastAnalysisTime >= 333L) {
+                if (currentTime - lastAnalysisTime >= 500L) {
                     lastAnalysisTime = currentTime
                     imageProxyToBitmap(imageProxy)?.let { bmp ->
-                        // FIX: Calling diagnose with ONLY the bitmap as expected by the engine
-                        val result = diagnosisEngine?.diagnose(bmp)
-                        result?.let {
+                        // FIX: Ensure parameters match your DiagnosisEngine.diagnose method
+                        diagnosisEngine?.diagnose(bmp, selectedCrop)?.let { result ->
                             onScanningStateChanged(true)
-                            onDiagnosisComplete(it)
+                            onDiagnosisComplete(result)
                         }
                     }
                 }
