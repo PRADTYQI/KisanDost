@@ -36,23 +36,13 @@ fun DiagnosisResultScreen(
     val isSpeaking by ttsManager.isSpeaking.collectAsState()
     val rewardedAdManager = remember { RewardedAdManager.getInstance() }
     
-    LaunchedEffect(Unit) {
-        rewardedAdManager.loadRewardedAd(context)
-    }
+    LaunchedEffect(Unit) { rewardedAdManager.loadRewardedAd(context) }
     
-    DisposableEffect(Unit) {
-        onDispose { ttsManager.shutdown() }
-    }
+    DisposableEffect(Unit) { onDispose { ttsManager.shutdown() } }
     
-    Scaffold(
-        bottomBar = { BannerAdView() }
-    ) { paddingValues ->
+    Scaffold(bottomBar = { BannerAdView() }) { paddingValues ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
+            modifier = Modifier.fillMaxSize().padding(paddingValues).verticalScroll(rememberScrollState()).padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
@@ -73,21 +63,22 @@ fun DiagnosisResultScreen(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(text = stringResource(R.string.disease_detected), style = MaterialTheme.typography.titleMedium, color = KisanGreen)
-                                Text(text = result.diseaseName, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                                Text(text = result.disease, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
                                 Text(text = stringResource(R.string.confidence, (result.confidence * 100).toInt()), style = MaterialTheme.typography.bodyLarge)
                             }
-                            IconButton(onClick = { ttsManager.speak(result.diseaseName, "hi") }) {
+                            IconButton(onClick = { ttsManager.speak(result.disease, "hi") }) {
                                 Icon(Icons.Default.VolumeUp, contentDescription = null, tint = if (isSpeaking) KisanGreen else Color.Gray)
                             }
                         }
                     }
                 }
                 
-                RemedySection(stringResource(R.string.remedy_chemical), result.chemical, MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f), MaterialTheme.colorScheme.error)
+                // Render remedies safely
+                RemedySection(stringResource(R.string.remedy_chemical), result.remedies.chemical, MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f), MaterialTheme.colorScheme.error)
                 Spacer(modifier = Modifier.height(8.dp))
-                RemedySection(stringResource(R.string.remedy_organic), result.organic, KisanGreen.copy(alpha = 0.1f), KisanGreen)
+                RemedySection(stringResource(R.string.remedy_organic), result.remedies.organic, KisanGreen.copy(alpha = 0.1f), KisanGreen)
                 Spacer(modifier = Modifier.height(8.dp))
-                RemedySection(stringResource(R.string.remedy_traditional), result.traditional, MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.2f), MaterialTheme.colorScheme.tertiary)
+                RemedySection(stringResource(R.string.remedy_traditional), result.remedies.traditional, MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.2f), MaterialTheme.colorScheme.tertiary)
 
                 Button(
                     onClick = { if (context is Activity) rewardedAdManager.showRewardedAd(context, {}, {}, {}) },
@@ -104,11 +95,11 @@ fun DiagnosisResultScreen(
 @Composable
 fun RemedySection(title: String, remedies: List<String>, cardColor: Color, titleColor: Color) {
     if (remedies.isEmpty()) return
-    Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp), colors = CardDefaults.cardColors(containerColor = cardColor)) {
+    Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = cardColor)) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = titleColor)
             remedies.forEachIndexed { i, remedy ->
-                Text(text = "${i + 1}. $remedy", modifier = Modifier.padding(vertical = 4.dp), style = MaterialTheme.typography.bodyMedium)
+                Text(text = "${i + 1}. $remedy", modifier = Modifier.padding(vertical = 4.dp))
             }
         }
     }

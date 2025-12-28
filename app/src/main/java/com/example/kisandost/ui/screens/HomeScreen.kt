@@ -62,15 +62,14 @@ fun HomeScreen(
     val isCapturing by viewModel.isCapturing.collectAsState()
     val selectedCrop by viewModel.selectedCrop.collectAsState()
     
+    // Initialize engine with the correct model path
     LaunchedEffect(Unit) {
-        diagnosisEngine = DiagnosisEngine(context)
-        // FIX: Ensure the engine loads the initial selected crop
-        diagnosisEngine?.switchCropModel(selectedCrop)
+        diagnosisEngine = DiagnosisEngine(context, selectedCrop.modelPath)
     }
     
+    // Update model when crop selection changes
     LaunchedEffect(selectedCrop) {
-        // FIX: Update engine model when the user changes crop selection
-        diagnosisEngine?.switchCropModel(selectedCrop)
+        diagnosisEngine?.updateModel(selectedCrop.modelPath)
     }
     
     DisposableEffect(Unit) {
@@ -101,7 +100,6 @@ fun HomeScreen(
                     context = context,
                     lifecycleOwner = lifecycleOwner,
                     diagnosisEngine = diagnosisEngine,
-                    selectedCrop = selectedCrop,
                     onDiagnosisComplete = { result ->
                         viewModel.setDiagnosisResult(result)
                         viewModel.resetCaptureState()
@@ -141,7 +139,6 @@ fun RealTimeCameraPreview(
     context: Context,
     lifecycleOwner: androidx.lifecycle.LifecycleOwner,
     diagnosisEngine: DiagnosisEngine?,
-    selectedCrop: CropType,
     onDiagnosisComplete: (com.example.kisandost.diagnosis.DiagnosisResult) -> Unit,
     onScanningStateChanged: (Boolean) -> Unit,
     isCapturing: Boolean
@@ -163,8 +160,8 @@ fun RealTimeCameraPreview(
                 if (currentTime - lastAnalysisTime >= 500L) {
                     lastAnalysisTime = currentTime
                     imageProxyToBitmap(imageProxy)?.let { bmp ->
-                        // FIX: Ensure parameters match your DiagnosisEngine.diagnose method
-                        diagnosisEngine?.diagnose(bmp, selectedCrop)?.let { result ->
+                        // FIX: Pass only the bitmap as the engine now returns formatted results
+                        diagnosisEngine?.diagnose(bmp)?.let { result ->
                             onScanningStateChanged(true)
                             onDiagnosisComplete(result)
                         }
