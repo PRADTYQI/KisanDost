@@ -58,6 +58,8 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation("com.google.guava:guava:32.1.2-android")
     implementation("androidx.compose.material:material-icons-extended")
+    implementation("com.google.android.gms:play-services-ads:23.1.0")
+    implementation("org.tensorflow:tensorflow-lite:2.14.0")
     
     // AdMob
     implementation("com.google.android.gms:play-services-ads:23.0.0")
