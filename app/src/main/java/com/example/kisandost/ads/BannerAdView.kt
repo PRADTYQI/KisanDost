@@ -12,7 +12,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.example.kisandost.R
 import com.google.android.gms.ads.AdRequest
@@ -25,14 +24,11 @@ fun BannerAdView(
 ) {
     val context = LocalContext.current
     val adUnitId = stringResource(R.string.admob_banner_test_id)
-    
-    // Get adaptive ad size based on screen width
-    val adSize = AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
-    context,
-    adWidth
-)
+
+    val adSize = remember {
+        getAdaptiveAdSize(context)
     }
-    
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -57,27 +53,21 @@ fun BannerAdView(
 }
 
 /**
- * Gets the appropriate adaptive banner ad size for the current context.
- * Falls back to standard banner if adaptive sizing is not available.
+ * Returns a valid adaptive banner size using the correct Google Ads API.
  */
 private fun getAdaptiveAdSize(context: Context): AdSize {
-    return try {
-        if (context is Activity) {
-            // Calculate screen width in dp
-            val displayMetrics = context.resources.displayMetrics
-            val widthPixels = displayMetrics.widthPixels
-            val density = displayMetrics.density
-            val widthDp = (widthPixels / density).toInt()
-            
-            // Use adaptive banner size (minimum width 320dp)
-            AdSize.getAnchoredAdaptiveBannerAdSize(context, widthDp.coerceAtLeast(320))
-        } else {
-            AdSize.BANNER
-        }
-    } catch (e: Exception) {
-        // Fallback to standard banner if adaptive size fails
+    return if (context is Activity) {
+        val displayMetrics = context.resources.displayMetrics
+        val adWidthPixels = displayMetrics.widthPixels
+        val density = displayMetrics.density
+        val adWidthDp = (adWidthPixels / density).toInt().coerceAtLeast(320)
+
+        // ✅ CORRECT API — this exists
+        AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
+            context,
+            adWidthDp
+        )
+    } else {
         AdSize.BANNER
     }
 }
-
-
