@@ -56,6 +56,8 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation("com.google.guava:guava:32.1.2-android")
+    implementation("androidx.compose.material:material-icons-extended")
     
     // AdMob
     implementation("com.google.android.gms:play-services-ads:23.0.0")
