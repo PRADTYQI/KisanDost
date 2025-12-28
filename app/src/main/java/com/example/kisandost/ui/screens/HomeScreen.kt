@@ -64,13 +64,13 @@ fun HomeScreen(
     
     LaunchedEffect(Unit) {
         diagnosisEngine = DiagnosisEngine(context)
-        // FIX: Ensure switchCropModel receives the crop object
-        diagnosisEngine?.switchCropModel(selectedCrop)
+        // FIX: Using crop.modelPath to pass the string filename
+        diagnosisEngine?.loadModel(selectedCrop.modelPath)
     }
     
     LaunchedEffect(selectedCrop) {
-        // FIX: Update engine when crop changes
-        diagnosisEngine?.switchCropModel(selectedCrop)
+        // FIX: Update model when user selects a different crop
+        diagnosisEngine?.loadModel(selectedCrop.modelPath)
     }
     
     DisposableEffect(Unit) {
@@ -88,8 +88,6 @@ fun HomeScreen(
             color = KisanGreen,
             modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
         )
-        
-        Text(text = stringResource(R.string.home_subtitle), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(bottom = 16.dp))
         
         if (!cameraPermissionState.allPermissionsGranted) {
             Spacer(modifier = Modifier.weight(1f))
@@ -165,10 +163,11 @@ fun RealTimeCameraPreview(
                 if (currentTime - lastAnalysisTime >= 333L) {
                     lastAnalysisTime = currentTime
                     imageProxyToBitmap(imageProxy)?.let { bmp ->
-                        // FIX: Pass ONLY parameters the engine expects
-                        diagnosisEngine?.diagnose(bmp, selectedCrop)?.let { result ->
+                        // FIX: Calling diagnose with ONLY the bitmap as expected by the engine
+                        val result = diagnosisEngine?.diagnose(bmp)
+                        result?.let {
                             onScanningStateChanged(true)
-                            onDiagnosisComplete(result)
+                            onDiagnosisComplete(it)
                         }
                     }
                 }

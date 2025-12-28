@@ -1,7 +1,6 @@
 package com.example.kisandost.ui.screens
 
 import android.app.Activity
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -22,7 +21,6 @@ import androidx.navigation.NavController
 import com.example.kisandost.R
 import com.example.kisandost.admob.RewardedAdManager
 import com.example.kisandost.ads.BannerAdView
-import com.example.kisandost.diagnosis.DiagnosisResult
 import com.example.kisandost.ui.theme.KisanGreen
 import com.example.kisandost.ui.theme.KisanWhite
 import com.example.kisandost.utils.TTSManager
@@ -85,11 +83,11 @@ fun DiagnosisResultScreen(
                     }
                 }
                 
-                RemedyCard(stringResource(R.string.remedy_chemical), result.chemical, MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f), MaterialTheme.colorScheme.error)
+                RemedySection(stringResource(R.string.remedy_chemical), result.chemical, MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f), MaterialTheme.colorScheme.error)
                 Spacer(modifier = Modifier.height(8.dp))
-                RemedyCard(stringResource(R.string.remedy_organic), result.organic, KisanGreen.copy(alpha = 0.1f), KisanGreen)
+                RemedySection(stringResource(R.string.remedy_organic), result.organic, KisanGreen.copy(alpha = 0.1f), KisanGreen)
                 Spacer(modifier = Modifier.height(8.dp))
-                RemedyCard(stringResource(R.string.remedy_traditional), result.traditional, MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.2f), MaterialTheme.colorScheme.tertiary)
+                RemedySection(stringResource(R.string.remedy_traditional), result.traditional, MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.2f), MaterialTheme.colorScheme.tertiary)
 
                 Button(
                     onClick = { if (context is Activity) rewardedAdManager.showRewardedAd(context, {}, {}, {}) },
@@ -104,12 +102,13 @@ fun DiagnosisResultScreen(
 }
 
 @Composable
-fun RemedyCard(title: String, remedies: List<String>, cardColor: Color, titleColor: Color) {
+fun RemedySection(title: String, remedies: List<String>, cardColor: Color, titleColor: Color) {
+    if (remedies.isEmpty()) return
     Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = cardColor)) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = titleColor)
             remedies.forEachIndexed { i, remedy ->
-                Text(text = "${i + 1}. $remedy", modifier = Modifier.padding(vertical = 4.dp))
+                Text(text = "${i + 1}. $remedy", modifier = Modifier.padding(vertical = 4.dp), style = MaterialTheme.typography.bodyMedium)
             }
         }
     }
