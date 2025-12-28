@@ -45,12 +45,10 @@ fun DiagnosisResultScreen(
     val safetyGuard = remember { SafetyGuard.getInstance() }
     val rewardedAdManager = remember { RewardedAdManager.getInstance() }
     
-    // Load rewarded ad on screen entry
     LaunchedEffect(Unit) {
         rewardedAdManager.loadRewardedAd(context)
     }
     
-    // Cleanup TTS on exit
     DisposableEffect(Unit) {
         onDispose {
             ttsManager.shutdown()
@@ -102,7 +100,6 @@ fun DiagnosisResultScreen(
                 }
             }
             
-            // Title
             Text(
                 text = stringResource(R.string.diagnosis_result),
                 style = MaterialTheme.typography.headlineLarge,
@@ -112,7 +109,6 @@ fun DiagnosisResultScreen(
             )
             
             diagnosisResult?.let { result ->
-                // Disease Card
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -140,8 +136,9 @@ fun DiagnosisResultScreen(
                                     color = KisanGreen
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
+                                // UPDATED: Using diseaseName property
                                 Text(
-                                    text = result.disease,
+                                    text = result.diseaseName,
                                     style = MaterialTheme.typography.headlineMedium,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -155,15 +152,14 @@ fun DiagnosisResultScreen(
                                 )
                             }
                             
-                            // Speaker Icon for TTS
                             IconButton(
                                 onClick = {
-                                    val ttsText = if (result.disease == "Healthy") {
+                                    val ttsText = if (result.diseaseName == "Healthy") {
                                         context.getString(R.string.tts_healthy_plant)
                                     } else {
                                         context.getString(
                                             R.string.tts_disease_detected,
-                                            result.disease,
+                                            result.diseaseName,
                                             (result.confidence * 100).toInt()
                                         )
                                     }
@@ -182,44 +178,38 @@ fun DiagnosisResultScreen(
                     }
                 }
                 
-                // Remedy Cards: Chemical, Organic, Traditional
-                val remedies = result.remedies
-                
-                // Chemical Remedies Card
-                if (remedies.chemical.isNotEmpty()) {
+                // UPDATED: Using direct property access for remedies
+                if (result.chemical.isNotEmpty()) {
                     RemedyCard(
                         title = stringResource(R.string.remedy_chemical),
-                        remedies = remedies.chemical,
+                        remedies = result.chemical,
                         cardColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f),
                         titleColor = MaterialTheme.colorScheme.error,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
                 }
                 
-                // Organic Remedies Card
-                if (remedies.organic.isNotEmpty()) {
+                if (result.organic.isNotEmpty()) {
                     RemedyCard(
                         title = stringResource(R.string.remedy_organic),
-                        remedies = remedies.organic,
+                        remedies = result.organic,
                         cardColor = KisanGreen.copy(alpha = 0.1f),
                         titleColor = KisanGreen,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
                 }
                 
-                // Traditional Remedies Card
-                if (remedies.traditional.isNotEmpty()) {
+                if (result.traditional.isNotEmpty()) {
                     RemedyCard(
                         title = stringResource(R.string.remedy_traditional),
-                        remedies = remedies.traditional,
+                        remedies = result.traditional,
                         cardColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f),
                         titleColor = MaterialTheme.colorScheme.tertiary,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
                 }
                 
-                // Show message if no remedies available
-                if (remedies.chemical.isEmpty() && remedies.organic.isEmpty() && remedies.traditional.isEmpty()) {
+                if (result.chemical.isEmpty() && result.organic.isEmpty() && result.traditional.isEmpty()) {
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -234,36 +224,24 @@ fun DiagnosisResultScreen(
                     }
                 }
                 
-                // Upload for Expert Review Button (if online and high speed)
                 if (isOnline && isHighSpeed) {
                     Button(
-                        onClick = {
-                            // TODO: Implement cloud upload
-                        },
+                        onClick = { /* TODO: Cloud upload */ },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(bottom = 16.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = KisanGreen
-                        )
+                        colors = ButtonDefaults.buttonColors(containerColor = KisanGreen)
                     ) {
-                        Text(
-                            text = stringResource(R.string.upload_for_expert_review),
-                            color = KisanWhite
-                        )
+                        Text(text = stringResource(R.string.upload_for_expert_review), color = KisanWhite)
                     }
                 }
                 
-                // Get Expert Remedy Button (Triggers Rewarded Ad)
                 Button(
                     onClick = {
                         if (context is Activity) {
                             rewardedAdManager.showRewardedAd(
                                 activity = context,
-                                onAdRewarded = {
-                                    // Premium remedy already shown in remedy cards
-                                    // Could expand with additional premium content here
-                                },
+                                onAdRewarded = {},
                                 onAdClosed = {},
                                 onAdFailedToShow = {}
                             )
@@ -272,21 +250,12 @@ fun DiagnosisResultScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 16.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.secondary
-                    )
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
                 ) {
-                    Text(
-                        text = stringResource(R.string.get_expert_remedy),
-                        color = KisanWhite
-                    )
+                    Text(text = stringResource(R.string.get_expert_remedy), color = KisanWhite)
                 }
             } ?: run {
-                // No result state
-                Text(
-                    text = stringResource(R.string.no_disease_detected),
-                    style = MaterialTheme.typography.bodyLarge
-                )
+                Text(text = stringResource(R.string.no_disease_detected), style = MaterialTheme.typography.bodyLarge)
             }
         }
     }
@@ -303,15 +272,9 @@ fun RemedyCard(
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = cardColor
-        )
+        colors = CardDefaults.cardColors(containerColor = cardColor)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp)
-        ) {
+        Column(modifier = Modifier.fillMaxWidth().padding(20.dp)) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleLarge,
@@ -321,25 +284,16 @@ fun RemedyCard(
             )
             
             remedies.forEachIndexed { index, remedy ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 6.dp)
-                ) {
+                Row(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
                     Text(
                         text = "${index + 1}. ",
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Bold,
                         color = titleColor
                     )
-                    Text(
-                        text = remedy,
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.weight(1f)
-                    )
+                    Text(text = remedy, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
                 }
             }
         }
     }
 }
-
