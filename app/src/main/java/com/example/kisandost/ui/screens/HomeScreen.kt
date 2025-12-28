@@ -252,7 +252,7 @@ fun CropIconButton(
 ) {
     val context = LocalContext.current
     val drawableId = context.resources.getIdentifier(
-        crop.drawableResourceName, // Use exact case as file name
+        crop.drawableResourceName, 
         "drawable",
         context.packageName
     )
@@ -281,7 +281,6 @@ fun CropIconButton(
                 contentScale = ContentScale.Fit
             )
         } else {
-            // Fallback text if drawable not found
             Text(
                 text = crop.displayName.take(1),
                 style = MaterialTheme.typography.titleLarge,
@@ -304,7 +303,7 @@ fun RealTimeCameraPreview(
     val previewView = remember { PreviewView(context) }
     var imageAnalyzer by remember { mutableStateOf<ImageAnalysis?>(null) }
     var lastAnalysisTime by remember { mutableLongStateOf(0L) }
-    val analysisInterval = 333L // ~3 times per second (1000ms / 3)
+    val analysisInterval = 333L 
     
     LaunchedEffect(previewView, isCapturing) {
         val cameraProvider = context.getCameraProvider()
@@ -314,7 +313,6 @@ fun RealTimeCameraPreview(
                 it.setSurfaceProvider(previewView.surfaceProvider)
             }
         
-        // Image Analyzer for real-time processing (3 fps) - only when capturing
         val analyzer = ImageAnalysis.Builder()
             .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
             .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_YUV_420_888)
@@ -328,99 +326,8 @@ fun RealTimeCameraPreview(
                     if (currentTime - lastAnalysisTime >= analysisInterval) {
                         lastAnalysisTime = currentTime
                         
-                        // Convert ImageProxy to Bitmap
                         val bitmap = imageProxyToBitmap(imageProxy)
                         bitmap?.let { bmp ->
                             diagnosisEngine?.let { engine ->
-                                val result = engine.diagnose(bmp, selectedCrop)
-                                result?.let {
-                                    onScanningStateChanged(true)
-                                    onDiagnosisComplete(it)
-                                }
-                            }
-                        }
-                    }
-                    imageProxy.close()
-                }
-            )
-        } else {
-            analyzer.clearAnalyzer()
-        }
-        
-        imageAnalyzer = analyzer
-        
-        val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-        
-        try {
-            cameraProvider.unbindAll()
-            cameraProvider.bindToLifecycle(
-                lifecycleOwner,
-                cameraSelector,
-                preview,
-                analyzer
-            )
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-    
-    DisposableEffect(Unit) {
-        onDispose {
-            imageAnalyzer?.clearAnalyzer()
-        }
-    }
-    
-    AndroidView(
-        factory = { previewView },
-        modifier = Modifier.fillMaxSize()
-    )
-}
-
-private fun imageProxyToBitmap(imageProxy: ImageProxy): Bitmap? {
-    return try {
-        val yBuffer = imageProxy.planes[0].buffer
-        val uBuffer = imageProxy.planes[1].buffer
-        val vBuffer = imageProxy.planes[2].buffer
-        
-        val ySize = yBuffer.remaining()
-        val uSize = uBuffer.remaining()
-        val vSize = vBuffer.remaining()
-        
-        val nv21 = ByteArray(ySize + uSize + vSize)
-        
-        yBuffer.get(nv21, 0, ySize)
-        vBuffer.get(nv21, ySize, vSize)
-        uBuffer.get(nv21, ySize + vSize, uSize)
-        
-        val yuvImage = android.graphics.YuvImage(
-            nv21,
-            ImageFormat.NV21,
-            imageProxy.width,
-            imageProxy.height,
-            null
-        )
-        
-        val out = java.io.ByteArrayOutputStream()
-        yuvImage.compressToJpeg(
-            android.graphics.Rect(0, 0, imageProxy.width, imageProxy.height),
-            90,
-            out
-        )
-        val imageBytes = out.toByteArray()
-        android.graphics.BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
-    } catch (e: Exception) {
-        e.printStackTrace()
-        null
-    }
-}
-
-suspend fun Context.getCameraProvider(): ProcessCameraProvider = suspendCoroutine { continuation ->
-    ProcessCameraProvider.getInstance(this).also { future ->
-        future.addListener(
-            {
-                continuation.resume(future.get())
-            },
-            ContextCompat.getMainExecutor(this)
-        )
-    }
-}
+                                // FIX: Pass both bitmap and selectedCrop to the engine
+                                val result
