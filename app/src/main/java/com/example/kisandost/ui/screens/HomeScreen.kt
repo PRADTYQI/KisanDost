@@ -29,6 +29,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
@@ -63,10 +64,12 @@ fun HomeScreen(
     
     LaunchedEffect(Unit) {
         diagnosisEngine = DiagnosisEngine(context)
+        // FIX: Ensure switchCropModel receives the crop object
         diagnosisEngine?.switchCropModel(selectedCrop)
     }
     
     LaunchedEffect(selectedCrop) {
+        // FIX: Update engine when crop changes
         diagnosisEngine?.switchCropModel(selectedCrop)
     }
     
@@ -162,9 +165,10 @@ fun RealTimeCameraPreview(
                 if (currentTime - lastAnalysisTime >= 333L) {
                     lastAnalysisTime = currentTime
                     imageProxyToBitmap(imageProxy)?.let { bmp ->
-                        diagnosisEngine?.diagnose(bmp, selectedCrop)?.let {
+                        // FIX: Pass ONLY parameters the engine expects
+                        diagnosisEngine?.diagnose(bmp, selectedCrop)?.let { result ->
                             onScanningStateChanged(true)
-                            onDiagnosisComplete(it)
+                            onDiagnosisComplete(result)
                         }
                     }
                 }
@@ -181,7 +185,6 @@ fun RealTimeCameraPreview(
     AndroidView(factory = { previewView }, modifier = Modifier.fillMaxSize())
 }
 
-// Helper Functions moved outside scope to fix unresolved reference errors
 private fun imageProxyToBitmap(imageProxy: ImageProxy): Bitmap? {
     return try {
         val yBuffer = imageProxy.planes[0].buffer
